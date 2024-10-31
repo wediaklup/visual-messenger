@@ -12,6 +12,10 @@ CREATE TABLE `rooms` (
     name VARCHAR(256) NOT NULL,
     created DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     creator INT NOT NULL,
+    background_music BLOB,
+    background_music_mime VARCHAR(64),
+    background_image BLOB,
+    background_image_mime VARCHAR(64),
     FOREIGN KEY (creator) REFERENCES users (id)
 );
 
