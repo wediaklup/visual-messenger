@@ -42,9 +42,10 @@ def login():
         res = customloginlib.login(username, password)
 
         if res.valid:
+            print(res.data)
             response = make_response(redirect("/"))
             response.set_cookie("validator", res.data)
-            return response, 200
+            return response
 
         return render_template("login.html", error="invalid username/password"), 401
 
