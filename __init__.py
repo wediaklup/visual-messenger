@@ -57,7 +57,7 @@ def login():
         return redirect("/")
 
 @app.route("/")
-@login_required
+#@login_required
 def root():
     return render_template("index.html")
 
