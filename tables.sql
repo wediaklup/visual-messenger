@@ -1,7 +1,7 @@
 CREATE TABLE `users` (
     id INT PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
-    sha256 VARCHAR(64) NOT NULL,
+    sha256 VARCHAR(128) NOT NULL,
     validator VARCHAR(64) NOT NULL,
     validation_time TIMESTAMP NOT NULL,
     salt VARCHAR(64) NOT NULL,

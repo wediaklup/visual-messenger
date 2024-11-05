@@ -18,20 +18,21 @@ class User(psql.SQLObject):
     SERVER_NAME = "hector"
     SCHEMA_NAME = "visual_messenger"
     TABLE_NAME = "users"
-    SQL_KEYS = ["id", "name", "sha256", "validator", "validation_time", "salt"]
+    SQL_KEYS = ["id", "name", "sha256", "validator", "validation_time", "admin", "salt"]
     PRIMARY_KEY = SQL_KEYS[0]
 
-    def __init__(self, _id: int, name: str, sha256: str, validator: Optional[str], validation_time: datetime, salt: str):
+    def __init__(self, _id: int, name: str, sha256: str, validator: Optional[str], validation_time: datetime, admin: bool, salt: str):
         self.id = _id
         self.name = name
         self.sha256 = sha256
         self.validator = validator
         self.validation_time = validation_time
+        self.admin = admin
         self.salt = salt
 
     @staticmethod
     def construct(response) -> list:
-        return [User(x[0], x[1], x[2], x[3], x[4], x[5]) for x in response]
+        return [User(x[0], x[1], x[2], x[3], x[4], x[5], x[6]) for x in response]
 
 
 def login(username, password, register=False) -> LoginResponse:

@@ -27,7 +27,7 @@ def login_required(f):
         user = get_user()
         if not user:
             return redirect("/login")
-        return f
+        return f(*args, **kwargs)
     return decorated_function
 
 
