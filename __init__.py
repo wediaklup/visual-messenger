@@ -41,23 +41,19 @@ def login():
 
         res = customloginlib.login(username, password)
 
-<<<<<<< HEAD
-
-        return redirect("/")
-=======
         if res.valid:
             response = make_response(redirect("/"))
             response.set_cookie("validator", res.data)
             return response, 200
 
         return render_template("login.html", error="invalid username/password"), 401
->>>>>>> 51dc15714b0db99f3ed71ed2d33d6ba57ef1dddb
 
 
 @app.route("/")
 @login_required
 def root():
     return render_template("index.html")
+
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
