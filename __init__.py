@@ -44,6 +44,7 @@ def login():
         except KeyError:
             return render_template("login.html", error="invalid username/password")
 
+
         return redirect("/")
 
 
@@ -51,6 +52,20 @@ def login():
 @login_required
 def root():
     return render_template("index.html")
+
+@app.route("/register", methods=["GET", "POST"])
+def register():
+    if request.method == "GET":
+        return render_template("/register.html")
+    elif request.method ==  "POST":
+        username = request.form["username"]
+        password = request.form["password"]
+        password_check = request.form["password_check"]
+
+        if password != password_check:
+            render_template("/register.html", error="password and password_check do not match")
+
+        customloginlib.login("username", "password", True)
 
 
 def get_user() -> t.Union[customloginlib.User, None]:
