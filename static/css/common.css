@@ -1,7 +1,62 @@
 :root {
-    --color-bg: #
+    --color-bg: #e59cd4;
+    --color-chats-bg: #ff95ef;
+    --color-chats-accent: #fc8eed;
+    --color-navbar: #d757c6;
+    --color-shadow: #8c3982;
+    font-size: 20px;
+}
+
+html {
+    height: 100vh;
 }
 
 body {
+    height: 100%;
+    margin: 0;
     background-color: var(--color-bg);
 }
+
+#main-container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 97vw;
+    height: 97vh;
+    border-radius: 1em;
+    /* box-shadow: 0.5em 0.5em 0.5em var(--color-shadow); */
+
+    overflow: hidden;
+
+    #header {
+        border-radius: 1em 1em 0 0;
+        box-shadow: 0.25em 0.25em 0.25em var(--color-shadow) inset;
+        height: 5rem;
+        background-color: var(--color-navbar);
+    }
+
+    #content-wrapper {
+        display: flex;
+        height: 100%;
+
+        #chats {
+            flex: 1;
+            background-color: var(--color-chats-bg);
+            box-shadow: 0.25em -0.25em 0.25em var(--color-shadow) inset;
+        }
+
+        #main-panel-bg {
+            flex: 3;
+            background-image: url("https://upload.wikimedia.org/wikipedia/commons/7/76/001_1967_08_25_Fahrzeuge_Personenverkehr.jpg");
+            background-size: cover;
+        }
+
+        #main-panel {
+            width: 100%;
+            height: 100%;
+            backdrop-filter: blur(10px);
+        }
+    }
+}
+

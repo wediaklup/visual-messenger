@@ -1,6 +1,7 @@
 from flask import Flask, render_template, abort, jsonify, make_response, session, redirect
 from functools import wraps
 from sqlite3 import connect
+from hashlib import sha256
 
 app = Flask(__name__)
 con = connect("tables.sql")
@@ -19,7 +20,7 @@ def login():
     return render_template("/login.html")
 
 @app.route("/")
-@login_required
+#@login_required
 def root():
     return render_template("index.html")
 

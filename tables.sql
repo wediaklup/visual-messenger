@@ -28,14 +28,14 @@ CREATE TABLE `message` (
     sent DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     sound BLOB,
     mime VARCHAR(64),
-    FOREIGN KEY (authorid) REFERENCES users (id)
+    FOREIGN KEY (authorid) REFERENCES users (id),
     FOREIGN KEY (roomid) REFERENCES rooms (id)
 );
 
 CREATE TABLE `room_link` (
     roomid INT PRIMARY KEY,
     userid INT PRIMARY KEY,
-    FOREIGN KEY (roomid) REFERENCES rooms (id)
+    FOREIGN KEY (roomid) REFERENCES rooms (id),
     FOREIGN KEY (userid) REFERENCES users (id)
 );
 
