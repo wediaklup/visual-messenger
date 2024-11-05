@@ -36,7 +36,7 @@ class User(psql.SQLObject):
 
 def login(username, password, register=False) -> LoginResponse:
     """:param password is raw"""
-    db = dbconnect.Adapter("belzig", "users")
+    db = dbconnect.Adapter("hector", "visual_messenger")
 
     if register:
         res = db.query(f"SELECT COUNT(`name`) FROM `users` WHERE `name` = '{dbconnect.escape(username)}';")
@@ -82,7 +82,7 @@ def login(username, password, register=False) -> LoginResponse:
 
 def logoff(validator):
     """Removes validator from database"""
-    db = dbconnect.Adapter("belzig", "users")
+    db = dbconnect.Adapter("hector", "visual_messenger")
     db.query(f"UPDATE `users` SET `validator` = Null, `validation_time` = '2000-01-01 00:00:00' WHERE `validator` = '{validator}'")
 
 

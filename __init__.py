@@ -37,15 +37,21 @@ def login():
         return render_template("/login.html", error="")
     elif request.method == "POST":
         username = request.form["username"]
-        password = request.form["passsword"]
+        password = request.form["password"]
 
-        try:
-            users = User.get(name=username, sha256=sha256(password.encode("utf-8")).hexdigest())
-        except KeyError:
-            return render_template("login.html", error="invalid username/password")
+        res = customloginlib.login(username, password)
 
+<<<<<<< HEAD
 
         return redirect("/")
+=======
+        if res.valid:
+            response = make_response(redirect("/"))
+            response.set_cookie("validator", res.data)
+            return response, 200
+
+        return render_template("login.html", error="invalid username/password"), 401
+>>>>>>> 51dc15714b0db99f3ed71ed2d33d6ba57ef1dddb
 
 
 @app.route("/")
