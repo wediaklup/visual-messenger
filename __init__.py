@@ -65,9 +65,10 @@ def register():
         password_check = request.form["password_check"]
 
         if password != password_check:
-            render_template("/register.html", error="password and password_check do not match")
+            return render_template("/register.html", error="password and password_check do not match"), 400
 
-        customloginlib.login("username", "password", True)
+        customloginlib.login(username, password, True)
+        return redirect("/login")
 
 
 def get_user() -> t.Union[customloginlib.User, None]:
