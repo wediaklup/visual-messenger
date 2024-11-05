@@ -4,6 +4,7 @@ CREATE TABLE `users` (
     sha256 VARCHAR(64) NOT NULL,
     validator VARCHAR(64) NOT NULL,
     validation_time TIMESTAMP NOT NULL,
+    salt VARCHAR(64) NOT NULL,
     admin TINYINT(1)
 );
 
