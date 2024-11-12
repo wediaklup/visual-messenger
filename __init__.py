@@ -79,9 +79,6 @@ def register():
 def settings():
     if request.method == "GET":
         return render_template("/settings.html")
-    if request.method == "POST":
-        # TODO
-        return render_template("/settings")
 
 def get_user() -> t.Union[customloginlib.User, None]:
     """USE AS IN:
