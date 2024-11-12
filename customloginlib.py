@@ -52,7 +52,7 @@ class User(psql.SQLObject):
         buffer.seek(0)
         return buffer
 
-    def upload_img(self, tone_indicator, buffer, mime) -> None:
+    def upload_img(self, tone_indicator: str, buffer, mime: str) -> None:
         self._db().query("UPDATE TABLE user_mime_link SET mime_%s = %s WHERE userid = %s", (tone_indicator, mime, self.id))
         buffer.seek(0)
         s3.upload_fileobj(buffer, BUCKET, self.__get_endpoint(tone_indicator))

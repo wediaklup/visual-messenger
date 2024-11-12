@@ -21,10 +21,6 @@ class CommonSQLObject(psql.SQLObject):
     SCHEMA_NAME = SCHEMA
 
 
-
-
-
-
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -75,10 +71,36 @@ def register():
         customloginlib.login(username, password, True)
         return redirect("/login")
 
+@login_required
 @app.route("/settings", methods=["GET", "POST"])
 def settings():
     if request.method == "GET":
         return render_template("/settings.html")
+
+@login_required
+@app.route("/settings/change_img", methods=["POST"])
+def change_img():
+    for key, value in request.files.items():
+        tone_indicator = key.split("_")[1]
+        mime_type = value.mimetype
+        buffer = value.stream
+        customloginlib.get_user().upload_img(tone_indicator, buffer, mime_type)
+    
+    return redirect("/settings")
+
+@login_required
+@app.route("/settings/change_password", methods=["POST"])
+def settings():
+    if request.method == "POST":
+        if request.form["password"] != request.form["check_password"]:
+            return render_template("/settings", errormsg="Password doesnt match Check")
+        
+        user = customloginlib.User.get(get_user().id)
+        salt = user.salt
+        password = request.form["password"]
+        user.sha256 = customloginlib.scrypt(password.encode("utf-8"), salt=salt.encode("utf-8"), n=4096, r=32, p=2).hex()
+        user.commit()
+        return redirect("/settings")
 
 def get_user() -> t.Union[customloginlib.User, None]:
     """USE AS IN:
