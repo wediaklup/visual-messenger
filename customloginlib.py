@@ -35,25 +35,27 @@ class User(psql.SQLObject):
         self.validation_time = validation_time
         self.admin = admin
         self.salt = salt
-        self.object_endpoint = s3_url_for(f"sprite-{self.id}-{tone_indicator}")
 
     @staticmethod
     def construct(response) -> list:
         return [User(x[0], x[1], x[2], x[3], x[4], x[5], x[6]) for x in response]
+
+    def __get_endpoint(self, tone_indicator: str) -> str:
+        return s3_url_for(f"sprite-{self.id}-{tone_indicator}")
 
     def get_mime(self, tone_indicator: str) -> str:
         return self._db().query("SELECT mime_%s FROM user_mime_link WHERE userid = %s", (tone_indicator, self.id))[0][0]
 
     def get_img(self, tone_indicator: str) -> io.BytesIO:
         buffer = io.BytesIO()
-        s3.download_fileobj(BUCKET, self.object_endpoint, buffer)
+        s3.download_fileobj(BUCKET, self.__get_endpoint(tone_indicator), buffer)
         buffer.seek(0)
         return buffer
 
     def upload_img(self, tone_indicator, buffer, mime) -> None:
         self._db().query("UPDATE TABLE user_mime_link SET mime_%s = %s WHERE userid = %s", (tone_indicator, mime, self.id))
         buffer.seek(0)
-        s3.upload_fileobj(buffer, BUCKET, self.object_endpoint)
+        s3.upload_fileobj(buffer, BUCKET, self.__get_endpoint(tone_indicator))
 
 
 def login(username, password, register=False) -> LoginResponse:
