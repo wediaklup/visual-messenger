@@ -21,6 +21,10 @@ class CommonSQLObject(psql.SQLObject):
     SCHEMA_NAME = SCHEMA
 
 
+
+
+
+
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):

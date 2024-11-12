@@ -1,3 +1,5 @@
+import io
+import boto3
 import dbconnect
 from hashlib import sha256, scrypt
 import random
@@ -6,6 +8,10 @@ import psql
 from typing import Optional
 import enum
 import secrets
+from common import BUCKET, S3_ENDPOINT, S3_ACCESS_KEY, S3_SECRET_KEY, s3_url_for
+
+
+s3 = boto3.client("s3", aws_access_key_id=S3_ACCESS_KEY, aws_secret_access_key=S3_SECRET_KEY, endpoint_url=S3_ENDPOINT)
 
 
 class LoginResponse:
@@ -29,10 +35,25 @@ class User(psql.SQLObject):
         self.validation_time = validation_time
         self.admin = admin
         self.salt = salt
+        self.object_endpoint = s3_url_for(f"sprite-{self.id}-{tone_indicator}")
 
     @staticmethod
     def construct(response) -> list:
         return [User(x[0], x[1], x[2], x[3], x[4], x[5], x[6]) for x in response]
+
+    def get_mime(self, tone_indicator: str) -> str:
+        return self._db().query("SELECT mime_%s FROM user_mime_link WHERE userid = %s", (tone_indicator, self.id))[0][0]
+
+    def get_img(self, tone_indicator: str) -> io.BytesIO:
+        buffer = io.BytesIO()
+        s3.download_fileobj(BUCKET, self.object_endpoint, buffer)
+        buffer.seek(0)
+        return buffer
+
+    def upload_img(self, tone_indicator, buffer, mime) -> None:
+        self._db().query("UPDATE TABLE user_mime_link SET mime_%s = %s WHERE userid = %s", (tone_indicator, mime, self.id))
+        buffer.seek(0)
+        s3.upload_fileobj(buffer, BUCKET, self.object_endpoint)
 
 
 def login(username, password, register=False) -> LoginResponse:
@@ -46,6 +67,8 @@ def login(username, password, register=False) -> LoginResponse:
         salt = secrets.token_hex()
         password_hash = scrypt(password.encode("utf-8"), salt=salt.encode("utf-8"), n=4096, r=32, p=2).hex()
         db.query(f"INSERT INTO `users` (`name`, `sha256`, `salt`) VALUES ('{dbconnect.escape(username)}', '{password_hash}', '{salt}');")
+
+        User._db().query("INSERT INTO user_mime_link (userid) VALUES (%s)", (User.get(name=username).id,))
 
     # login
     # check username existing
