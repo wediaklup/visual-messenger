@@ -4,6 +4,7 @@ from datetime import datetime
 import typing as t
 
 from flask import Flask, render_template, abort, jsonify, make_response, request, redirect
+from flask_socketio import SocketIO
 import psql
 from dbconnect import Adapter
 
@@ -11,6 +12,7 @@ import customloginlib
 
 
 app = Flask(__name__)
+socketio = SocketIO(app)
 
 SERVERNAME = "hector"
 SCHEMA = "visual_messenger"
@@ -93,7 +95,7 @@ def change_img():
 def settings():
     if request.method == "POST":
         if request.form["password"] != request.form["check_password"]:
-            return render_template("/settings", errormsg="Password doesnt match Check")
+            return render_template("/settings", errormsg="Password doesn't match Check")
         
         user = customloginlib.User.get(get_user().id)
         salt = user.salt
@@ -117,5 +119,5 @@ def get_user() -> t.Union[customloginlib.User, None]:
 
 
 if __name__ == "__main__":
-    app.run(debug=True, host="0.0.0.0", port=9980)
+    socketio.run(debug=True, host="0.0.0.0", port=9980)
 
