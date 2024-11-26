@@ -57,6 +57,9 @@ class User(psql.SQLObject):
         buffer.seek(0)
         s3.upload_fileobj(buffer, BUCKET, self.__get_endpoint(tone_indicator))
 
+    def get_available_channels(self) -> list[int]:
+        return [x[0] for x in self._db().query("SELECT roomid FROM room_link WHERE userid = %s", (self.id,))]
+
 
 def login(username, password, register=False) -> LoginResponse:
     """:param password is raw"""

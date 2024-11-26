@@ -4,23 +4,23 @@ from datetime import datetime
 import typing as t
 
 from flask import Flask, render_template, abort, jsonify, make_response, request, redirect
-from flask_socketio import SocketIO
+from flask_socketio import SocketIO, emit, join_room, leave_room, send
 import psql
 from dbconnect import Adapter
 
 import customloginlib
+from sqladapter import Message, Room
 
 
 app = Flask(__name__)
 socketio = SocketIO(app)
 
-SERVERNAME = "hector"
-SCHEMA = "visual_messenger"
 
+PROTOCOL_VERSION = 0
 
-class CommonSQLObject(psql.SQLObject):
-    SERVER_NAME = SERVERNAME
-    SCHEMA_NAME = SCHEMA
+MESSAGE_VERSION = "version"
+MESSAGE_HEADER = "header"
+MESSAGE_BODY = "body"
 
 
 def login_required(f):
@@ -55,7 +55,8 @@ def login():
 @app.route("/")
 @login_required
 def root():
-    return render_template("index.html")
+    user = get_user()
+    return render_template("index.html", available=user.get_available_channels())
 
 
 @app.route("/register", methods=["GET", "POST"])
@@ -73,11 +74,13 @@ def register():
         customloginlib.login(username, password, True)
         return redirect("/login")
 
+
 @login_required
 @app.route("/settings", methods=["GET", "POST"])
 def settings():
     if request.method == "GET":
         return render_template("/settings.html")
+
 
 @login_required
 @app.route("/settings/change_img", methods=["POST"])
@@ -87,22 +90,71 @@ def change_img():
         mime_type = value.mimetype
         buffer = value.stream
         customloginlib.get_user().upload_img(tone_indicator, buffer, mime_type)
-    
+
     return redirect("/settings")
+
 
 @login_required
 @app.route("/settings/change_password", methods=["POST"])
-def settings():
+def change_password():
     if request.method == "POST":
         if request.form["password"] != request.form["check_password"]:
             return render_template("/settings", errormsg="Password doesn't match Check")
-        
+
         user = customloginlib.User.get(get_user().id)
         salt = user.salt
         password = request.form["password"]
         user.sha256 = customloginlib.scrypt(password.encode("utf-8"), salt=salt.encode("utf-8"), n=4096, r=32, p=2).hex()
         user.commit()
         return redirect("/settings")
+
+
+@login_required
+@app.route("/create-channel", methods=["GET", "POST"])
+def create_channel():
+    user = get_user()
+
+    if request.method == "POST":
+        form = request.form
+        files = request.files
+
+        music = files["music"]
+        image = files["image"]
+
+        rid = Room.get_increment()
+        obj = Room(rid, form["name"], ..., user.id, music.stream.read(), music.mimetype, image.stream.read(), image.mimetype)
+        obj.commit()
+
+        Room._db().query("INSERT INTO room_link (roomid, userid) VALUES (%s, %s)", (rid, user.id))
+
+        for user in form["allowed-users"].split(","):
+            username = user.strip()
+            user_obj = customloginlib.User.get(name=username)
+            Room._db().query("INSERT INTO room_link (roomid, userid) VALUES (%s, %s)", (rid, user_obj.id))
+
+        return redirect(f"/?room={rid}")
+
+    return render_template("create-channel.html")
+
+
+@socketio.on("connect")
+def on_connect(auth):
+    username = auth[MESSAGE_HEADER]["username"]
+    password = auth[MESSAGE_HEADER]["password"]
+
+    response = customloginlib.login(username, password)
+
+    if not response.valid:
+        emit("disconnect", {
+            MESSAGE_VERSION: PROTOCOL_VERSION,
+            MESSAGE_HEADER: {"code": 401, "origin": "bouncer"},
+            MESSAGE_BODY: "Credentials do not match database."
+        })
+        return
+
+    req_room = int(auth[MESSAGE_HEADER]["req-room"])
+    room = Room.get(req_room)
+
 
 def get_user() -> t.Union[customloginlib.User, None]:
     """USE AS IN:
@@ -119,5 +171,5 @@ def get_user() -> t.Union[customloginlib.User, None]:
 
 
 if __name__ == "__main__":
-    socketio.run(debug=True, host="0.0.0.0", port=9980)
+    socketio.run(app, debug=True, host="0.0.0.0", port=9980)
 
